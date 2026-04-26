@@ -1,0 +1,54 @@
+local args = {
+	"MainQuestNPC"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Quests"):WaitForChild("Quest"):FireServer(unpack(args))
+
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("FS_Train"):FireServer()
+
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("BT_Train"):FireServer()
+
+game:GetService("Players").LocalPlayer.Character.Jump
+
+
+local args = {
+	"FistStrengthMultiplier"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("UpgradeMultiplier"):FireServer(unpack(args))
+
+local args = {
+	"BodyToughnessMultiplier"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("UpgradeMultiplier"):FireServer(unpack(args))
+
+
+local args = {
+	"MovementSpeedMultiplier"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("UpgradeMultiplier"):FireServer(unpack(args))
+
+
+local args = {
+	"JumpForceMultiplier"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("UpgradeMultiplier"):FireServer(unpack(args))
+
+
+local args = {
+	"PsychicPowerMultiplier"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("UpgradeMultiplier"):FireServer(unpack(args))
+
+
+local args = {
+	"goldmidas"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Codes"):WaitForChild("RedeemCode"):FireServer(unpack(args))
+
+
+local args = {
+	1,
+	"PsychicPower",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+
