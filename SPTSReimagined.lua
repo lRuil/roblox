@@ -15,6 +15,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 -- ==========================================
 local state = {
     TargetRace = "Bob",
+    RollDelay = 0.3, -- Default os.clock() delay
     WebhookURL = "",
     UserID = "",
     WebhookEnabled = false,
@@ -25,7 +26,8 @@ local state = {
     UpBody = false,
     UpSpeed = false,
     UpJump = false,
-    UpPsychic = false
+    UpPsychic = false,
+    AutoClaimDaily = false
 }
 
 -- ==========================================
@@ -35,6 +37,7 @@ local RollRemote = ReplicatedStorage:WaitForChild("RollRaceRF")
 local SaveRemote = ReplicatedStorage:WaitForChild("SaveRaceRF")
 local UseSkillRemote = ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("UseSkill")
 local UpgradeRemote = ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("UpgradeMultiplier")
+local QuestClaimRemote = ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim")
 
 local mainGui = player:WaitForChild("PlayerGui"):WaitForChild("RaceRollGui"):WaitForChild("Main")
 local raceLabel = mainGui:WaitForChild("CurrentRaceLabel")
@@ -42,7 +45,6 @@ local saveButton = mainGui:WaitForChild("SaveButton")
 
 local isAutoRolling = false
 local isAutoShooting = false
-local isAutoUpgrading = false
 local currentSavedRace = "Elf"
 
 local raceTiers = {
@@ -96,7 +98,7 @@ local function getStats()
             PP = ts.PsychicPower.StatLabel.Text
         }
     end)
-    if not success then warn("AIO Hub: Could not read StatLabels from UI.") return nil end
+    if not success then return nil end
     return result
 end
 
@@ -111,21 +113,14 @@ local function getMultipliers()
             PP = ts.PsychicPower.StatMultiplier.Text
         }
     end)
-    if not success then warn("AIO Hub: Could not read StatMultipliers from UI.") return nil end
+    if not success then return nil end
     return result
 end
 
 local function sendDiscordPing(webhookUrl, userId, title, description, color)
-    if not webhookUrl or webhookUrl == "" then 
-        warn("AIO Hub: Webhook URL is empty!")
-        return 
-    end
-    
+    if not webhookUrl or webhookUrl == "" then return end
     local httprequest = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
-    if not httprequest then 
-        warn("AIO Hub: Your executor does not support HTTP requests!")
-        return 
-    end
+    if not httprequest then return end
     
     local pingText = (userId and userId ~= "") and ("<@" .. userId .. "> ") or ""
 
@@ -139,21 +134,13 @@ local function sendDiscordPing(webhookUrl, userId, title, description, color)
         }}
     }
 
-    local success, err = pcall(function()
-        local response = httprequest({
+    pcall(function()
+        httprequest({
             Url = webhookUrl, Method = "POST",
             Headers = {["Content-Type"] = "application/json"},
             Body = HttpService:JSONEncode(webhookData)
         })
-        if response and response.StatusCode and response.StatusCode >= 400 then
-            warn("AIO Hub Webhook Error: Discord responded with Code", response.StatusCode)
-            warn("Discord Message:", response.Body)
-        else
-            print("AIO Hub: Webhook sent successfully! (" .. title .. ")")
-        end
     end)
-    
-    if not success then warn("AIO Hub Webhook Crash:", err) end
 end
 
 -- === ANTI-AFK ===
@@ -175,7 +162,6 @@ task.spawn(function()
                     "💪 **Fist Strength:** %s\n🛡️ **Body Toughness:** %s\n⚡ **Movement Speed:** %s\n🦘 **Jump Force:** %s\n🧠 **Psychic Power:** %s",
                     stats.FS, stats.BT, stats.MS, stats.JF, stats.PP
                 )
-                -- We pass an empty string instead of state.UserID to prevent the ping!
                 sendDiscordPing(state.WebhookURL, "", "📊 1-Minute Current Stats", desc, 3447003)
             end
         end
@@ -198,78 +184,6 @@ local Window = Rayfield:CreateWindow({
     KeySystem = false,
 })
 
--- ==========================================
--- === WEBHOOKS TAB ===
--- ==========================================
-local WebhookTab = Window:CreateTab("Webhooks", 4483345998)
-
-WebhookTab:CreateSection("Global Settings")
-
-WebhookTab:CreateToggle({
-    Name = "Enable Webhooks",
-    CurrentValue = false,
-    Flag = "ToggleGlobalWebhooks",
-    Callback = function(Value) state.WebhookEnabled = Value end,
-})
-
-WebhookTab:CreateInput({
-    Name = "Webhook URL (PRESS ENTER)",
-    PlaceholderText = "Paste URL and Press Enter...",
-    RemoveTextAfterFocusLost = false,
-    Flag = "WebhookURLInput",
-    Callback = function(Text) 
-        state.WebhookURL = Text 
-        print("AIO Hub: Webhook URL internally updated!")
-    end,
-})
-
-WebhookTab:CreateInput({
-    Name = "Discord User ID (PRESS ENTER)",
-    PlaceholderText = "Paste ID and Press Enter...",
-    RemoveTextAfterFocusLost = false,
-    Flag = "UserIDInput",
-    Callback = function(Text) state.UserID = Text end,
-})
-
-WebhookTab:CreateButton({
-    Name = "Test Webhook Ping",
-    Callback = function()
-        if state.WebhookURL ~= "" then
-            task.spawn(function()
-                sendDiscordPing(state.WebhookURL, state.UserID, "🧪 Webhook Test", "Config Loaded & Tested successfully!", 65280)
-                Rayfield:Notify({
-                    Title = "Webhook Fired!",
-                    Content = "Check your Discord. If nothing appeared, press F9 to read the error.",
-                    Duration = 4,
-                    Image = 4483362458,
-                })
-            end)
-        else
-            Rayfield:Notify({
-                Title = "Missing URL",
-                Content = "You must paste a URL and press ENTER on your keyboard first.",
-                Duration = 4,
-                Image = 4483362458,
-            })
-        end
-    end,
-})
-
-WebhookTab:CreateSection("Events")
-
-WebhookTab:CreateToggle({
-    Name = "Send Current Stats Every Minute",
-    CurrentValue = false,
-    Flag = "ToggleStatWebhook",
-    Callback = function(Value) state.StatWebhookEnabled = Value end,
-})
-
-WebhookTab:CreateToggle({
-    Name = "Ping on Successful Upgrade",
-    CurrentValue = false,
-    Flag = "ToggleUpgradeWebhook",
-    Callback = function(Value) state.UpgradeWebhookEnabled = Value end,
-})
 
 -- ==========================================
 -- === AUTO-ROLL TAB ===
@@ -283,6 +197,22 @@ RollTab:CreateInput({
     Flag = "TargetRaceInput", 
     Callback = function(Text)
         state.TargetRace = Text
+    end,
+})
+
+RollTab:CreateInput({
+    Name = "Roll Timeout Delay (Seconds)",
+    PlaceholderText = "Default is 0.3. Press Enter to save.",
+    RemoveTextAfterFocusLost = false,
+    Flag = "RollDelayInput", 
+    Callback = function(Text)
+        -- tonumber() turns the text into a real number. If they type letters, it defaults to 0.3
+        local num = tonumber(Text)
+        if num then
+            state.RollDelay = num
+        else
+            state.RollDelay = 0.3
+        end
     end,
 })
 
@@ -309,7 +239,8 @@ RollTab:CreateToggle({
                     local oldText = raceLabel.Text
                     RollRemote:InvokeServer()
                     
-                    local timeout = os.clock() + 0.05
+                    -- Uses your custom timeout delay instead of hardcoded 0.3
+                    local timeout = os.clock() + (tonumber(state.RollDelay) or 0.3)
                     while raceLabel.Text == oldText and os.clock() < timeout do task.wait() end
                     
                     local currentText = raceLabel.Text
@@ -353,85 +284,45 @@ RollTab:CreateToggle({
 -- ==========================================
 local StatsTab = Window:CreateTab("Upgrades", 4483345998)
 
-StatsTab:CreateSection("Select Stats to Auto-Upgrade")
+StatsTab:CreateSection("Auto-Upgrade Multipliers")
 
-StatsTab:CreateToggle({
-    Name = "Fist Strength",
-    CurrentValue = false,
-    Flag = "ToggleUpFist",
-    Callback = function(Value) state.UpFist = Value end,
-})
-StatsTab:CreateToggle({
-    Name = "Body Toughness",
-    CurrentValue = false,
-    Flag = "ToggleUpBody",
-    Callback = function(Value) state.UpBody = Value end,
-})
-StatsTab:CreateToggle({
-    Name = "Movement Speed",
-    CurrentValue = false,
-    Flag = "ToggleUpSpeed",
-    Callback = function(Value) state.UpSpeed = Value end,
-})
-StatsTab:CreateToggle({
-    Name = "Jump Force",
-    CurrentValue = false,
-    Flag = "ToggleUpJump",
-    Callback = function(Value) state.UpJump = Value end,
-})
-StatsTab:CreateToggle({
-    Name = "Psychic Power",
-    CurrentValue = false,
-    Flag = "ToggleUpPsychic",
-    Callback = function(Value) state.UpPsychic = Value end,
-})
-
-StatsTab:CreateSection("Master Control")
-
-StatsTab:CreateToggle({
-    Name = "Start Auto-Upgrade",
-    CurrentValue = false,
-    Flag = "ToggleAutoUpgrade",
-    Callback = function(Value)
-        isAutoUpgrading = Value
-        if isAutoUpgrading then
-            task.spawn(function()
-                while isAutoUpgrading do
-                    local prevMults = getMultipliers()
-                    
-                    if state.UpFist then UpgradeRemote:FireServer("FistStrengthMultiplier") end
-                    if state.UpBody then UpgradeRemote:FireServer("BodyToughnessMultiplier") end
-                    if state.UpSpeed then UpgradeRemote:FireServer("MovementSpeedMultiplier") end
-                    if state.UpJump then UpgradeRemote:FireServer("JumpForceMultiplier") end
-                    if state.UpPsychic then UpgradeRemote:FireServer("PsychicPowerMultiplier") end
-                    
-                    task.wait(1) 
-                    
-                    if state.WebhookEnabled and state.UpgradeWebhookEnabled and state.WebhookURL ~= "" then
-                        local newMults = getMultipliers()
-                        if prevMults and newMults then
-                            local upgradesStr = ""
-                            if state.UpFist and prevMults.FS ~= newMults.FS then upgradesStr = upgradesStr .. "Fist Strength: **" .. newMults.FS .. "**\n" end
-                            if state.UpBody and prevMults.BT ~= newMults.BT then upgradesStr = upgradesStr .. "Body Toughness: **" .. newMults.BT .. "**\n" end
-                            if state.UpSpeed and prevMults.MS ~= newMults.MS then upgradesStr = upgradesStr .. "Movement Speed: **" .. newMults.MS .. "**\n" end
-                            if state.UpJump and prevMults.JF ~= newMults.JF then upgradesStr = upgradesStr .. "Jump Force: **" .. newMults.JF .. "**\n" end
-                            if state.UpPsychic and prevMults.PP ~= newMults.PP then upgradesStr = upgradesStr .. "Psychic Power: **" .. newMults.PP .. "**\n" end
-                            
-                            if upgradesStr ~= "" then
-                                task.spawn(function()
-                                    sendDiscordPing(state.WebhookURL, state.UserID, "⭐ Successful Upgrade!", upgradesStr, 16753920)
-                                end)
+local function createUpgradeToggle(name, stateKey, remoteArg, multKey, emoji)
+    StatsTab:CreateToggle({
+        Name = "Auto " .. name,
+        CurrentValue = false,
+        Flag = "Toggle" .. stateKey,
+        Callback = function(Value)
+            state[stateKey] = Value
+            if Value then
+                task.spawn(function()
+                    while state[stateKey] do
+                        local prevMults = getMultipliers()
+                        UpgradeRemote:FireServer(remoteArg)
+                        task.wait(1)
+                        
+                        if state.WebhookEnabled and state.UpgradeWebhookEnabled and state.WebhookURL ~= "" then
+                            local newMults = getMultipliers()
+                            if prevMults and newMults and prevMults[multKey] ~= newMults[multKey] then
+                                local updatesStr = emoji .. " " .. name .. ": **" .. newMults[multKey] .. "**"
+                                sendDiscordPing(state.WebhookURL, state.UserID, "⭐ Successful Upgrade!", updatesStr, 16753920)
                             end
                         end
                     end
-                end
-            end)
-        end
-    end,
-})
+                end)
+            end
+        end,
+    })
+end
+
+createUpgradeToggle("Fist Strength", "UpFist", "FistStrengthMultiplier", "FS", "💪")
+createUpgradeToggle("Body Toughness", "UpBody", "BodyToughnessMultiplier", "BT", "🛡️")
+createUpgradeToggle("Movement Speed", "UpSpeed", "MovementSpeedMultiplier", "MS", "⚡")
+createUpgradeToggle("Jump Force", "UpJump", "JumpForceMultiplier", "JF", "🦘")
+createUpgradeToggle("Psychic Power", "UpPsychic", "PsychicPowerMultiplier", "PP", "🧠")
+
 
 -- ==========================================
--- === COMBAT TAB ===
+-- === COMBAT & MISC TAB ===
 -- ==========================================
 local CombatTab = Window:CreateTab("Combat & Misc", 4483345998)
 
@@ -470,6 +361,110 @@ CombatTab:CreateToggle({
 })
 
 -- ==========================================
+-- === AUTO CLAIM TAB ===
+-- ==========================================
+local ClaimTab = Window:CreateTab("Auto Claim", 4483345998)
+
+ClaimTab:CreateSection("Daily Quests")
+
+local dailyStats = {"FistStrength", "BodyToughness", "MovementSpeed", "JumpForce", "PsychicPower"}
+
+ClaimTab:CreateToggle({
+    Name = "Auto Collect Daily Missions",
+    CurrentValue = false,
+    Flag = "ToggleAutoClaimDaily",
+    Callback = function(Value)
+        state.AutoClaimDaily = Value
+        if state.AutoClaimDaily then
+            task.spawn(function()
+                while state.AutoClaimDaily do
+                    for tier = 1, 9 do
+                        for _, statName in ipairs(dailyStats) do
+                            
+                            -- Skips sending the request for Movement and Jump on tiers 5, 8, and 9 to prevent bans
+                            local isValid = true
+                            if (tier == 5 or tier == 8 or tier == 9) and (statName == "MovementSpeed" or statName == "JumpForce") then
+                                isValid = false
+                            end
+                            
+                            if isValid then
+                                QuestClaimRemote:FireServer(tier, statName, "Daily")
+                                task.wait(0.05) 
+                            end
+                            
+                        end
+                    end
+                    task.wait(30) 
+                end
+            end)
+        end
+    end,
+})
+
+-- ==========================================
+-- === WEBHOOKS TAB ===
+-- ==========================================
+local WebhookTab = Window:CreateTab("Webhooks", 4483345998)
+
+WebhookTab:CreateSection("Global Settings")
+
+WebhookTab:CreateToggle({
+    Name = "Enable Webhooks",
+    CurrentValue = false,
+    Flag = "ToggleGlobalWebhooks",
+    Callback = function(Value) state.WebhookEnabled = Value end,
+})
+
+WebhookTab:CreateInput({
+    Name = "Webhook URL (PRESS ENTER)",
+    PlaceholderText = "Paste URL and Press Enter...",
+    RemoveTextAfterFocusLost = false,
+    Flag = "WebhookURLInput",
+    Callback = function(Text) state.WebhookURL = Text end,
+})
+
+WebhookTab:CreateInput({
+    Name = "Discord User ID (PRESS ENTER)",
+    PlaceholderText = "Paste ID and Press Enter...",
+    RemoveTextAfterFocusLost = false,
+    Flag = "UserIDInput",
+    Callback = function(Text) state.UserID = Text end,
+})
+
+WebhookTab:CreateButton({
+    Name = "Test Webhook Ping",
+    Callback = function()
+        if state.WebhookURL ~= "" then
+            task.spawn(function()
+                sendDiscordPing(state.WebhookURL, state.UserID, "🧪 Webhook Test", "Config Loaded & Tested successfully!", 65280)
+                Rayfield:Notify({
+                    Title = "Webhook Fired!",
+                    Content = "Check your Discord for the ping.",
+                    Duration = 4,
+                    Image = 4483362458,
+                })
+            end)
+        end
+    end,
+})
+
+WebhookTab:CreateSection("Events")
+
+WebhookTab:CreateToggle({
+    Name = "Send Current Stats Every Minute",
+    CurrentValue = false,
+    Flag = "ToggleStatWebhook",
+    Callback = function(Value) state.StatWebhookEnabled = Value end,
+})
+
+WebhookTab:CreateToggle({
+    Name = "Ping on Successful Upgrade",
+    CurrentValue = false,
+    Flag = "ToggleUpgradeWebhook",
+    Callback = function(Value) state.UpgradeWebhookEnabled = Value end,
+})
+
+-- ==========================================
 -- === SETTINGS TAB ===
 -- ==========================================
 local SettingsTab = Window:CreateTab("Settings", 4483345998)
@@ -481,7 +476,12 @@ SettingsTab:CreateButton({
     Callback = function()
         isAutoRolling = false
         isAutoShooting = false
-        isAutoUpgrading = false
+        state.UpFist = false
+        state.UpBody = false
+        state.UpSpeed = false
+        state.UpJump = false
+        state.UpPsychic = false
+        state.AutoClaimDaily = false
         Rayfield:Destroy()
     end,
 })
