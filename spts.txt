@@ -52,3 +52,239 @@ local args = {
 }
 game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
 
+All daily missions:
+
+local args = {
+	1,
+	"FistStrength",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	1,
+	"BodyToughness",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	1,
+	"MovementSpeed",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	1,
+	"JumpForce",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	1,
+	"PsychicPower",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	2,
+	"FistStrength",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	2,
+	"BodyToughness",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	2,
+	"MovementSpeed",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	2,
+	"JumpForce",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	2,
+	"PsychicPower",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	3,
+	"FistStrength",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	3,
+	"BodyToughness",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	3,
+	"MovementSpeed",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	3,
+	"JumpForce",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	3,
+	"PsychicPower",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	4,
+	"FistStrength",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	4,
+	"BodyToughness",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	4,
+	"MovementSpeed",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	4,
+	"JumpForce",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	4,
+	"PsychicPower",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	5,
+	"FistStrength",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	5,
+	"BodyToughness",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	5,
+	"PsychicPower",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	6,
+	"FistStrength",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	6,
+	"BodyToughness",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	6,
+	"MovementSpeed",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	6,
+	"JumpForce",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	6,
+	"PsychicPower",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	7,
+	"FistStrength",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	7,
+	"BodyToughness",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	7,
+	"MovementSpeed",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	7,
+	"JumpForce",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	7,
+	"PsychicPower",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	8,
+	"FistStrength",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	8,
+	"BodyToughness",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	8,
+	"PsychicPower",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	9,
+	"FistStrength",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	9,
+	"BodyToughness",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))
+local args = {
+	9,
+	"PsychicPower",
+	"Daily"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("TimerQuestClaim"):FireServer(unpack(args))

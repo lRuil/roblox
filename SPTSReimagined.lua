@@ -15,7 +15,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 -- ==========================================
 local state = {
     TargetRace = "Bob",
-    RollDelay = 0.3, -- Default os.clock() delay
+    RollDelay = 0.3,
     WebhookURL = "",
     UserID = "",
     WebhookEnabled = false,
@@ -27,7 +27,16 @@ local state = {
     UpSpeed = false,
     UpJump = false,
     UpPsychic = false,
-    AutoClaimDaily = false
+    AutoClaimDaily = false,
+    
+    -- Crate Finder States
+    FindCommon = false,
+    FindRare = false,
+    FindEpic = false,
+    FindLegendary = false,
+    FindMythic = false,
+    FindGodly = false,
+    FindSecret = false
 }
 
 -- ==========================================
@@ -168,6 +177,54 @@ task.spawn(function()
     end
 end)
 
+-- === CRATE TRACKER BACKGROUND LOOP ===
+local trackedCrates = {} 
+task.spawn(function()
+    while true do
+        task.wait(3) 
+        if state.WebhookEnabled and state.WebhookURL ~= "" then
+            
+            if state.FindCommon or state.FindRare or state.FindEpic or state.FindLegendary or state.FindMythic or state.FindGodly or state.FindSecret then
+                for _, obj in ipairs(workspace:GetChildren()) do
+                    local isTargetCrate = false
+                    local crateType = ""
+                    local embedColor = 16777215 
+                    
+                    if state.FindCommon and obj.Name == "CommonCrate" then
+                        isTargetCrate = true; crateType = "Common"; embedColor = 14540253 -- Off-White
+                    elseif state.FindRare and obj.Name == "RareCrate" then
+                        isTargetCrate = true; crateType = "Rare"; embedColor = 5294335 -- Light Blue
+                    elseif state.FindEpic and obj.Name == "EpicCrate" then
+                        isTargetCrate = true; crateType = "Epic"; embedColor = 16724991 -- Magenta
+                    elseif state.FindLegendary and obj.Name == "LegendaryCrate" then
+                        isTargetCrate = true; crateType = "Legendary"; embedColor = 16776960 -- Yellow
+                    elseif state.FindMythic and obj.Name == "MythicCrate" then
+                        isTargetCrate = true; crateType = "Mythic"; embedColor = 16711680 -- Red
+                    elseif state.FindGodly and obj.Name == "GodlyCrate" then
+                        isTargetCrate = true; crateType = "Godly"; embedColor = 65280 -- Green
+                    elseif state.FindSecret and obj.Name == "SecretCrate" then
+                        isTargetCrate = true; crateType = "Secret"; embedColor = 3289650 -- Dark Grey
+                    end
+                    
+                    if isTargetCrate and not trackedCrates[obj] then
+                        trackedCrates[obj] = os.clock()
+                        
+                        local desc = string.format("A **%s Crate** has spawned in the workspace! Quick, go find it before it despawns.", crateType)
+                        sendDiscordPing(state.WebhookURL, state.UserID, "📦 " .. crateType .. " Crate Detected!", desc, embedColor)
+                    end
+                end
+            end
+            
+            for crateObj, timeFound in pairs(trackedCrates) do
+                if os.clock() - timeFound > 240 or not crateObj.Parent then
+                    trackedCrates[crateObj] = nil
+                end
+            end
+            
+        end
+    end
+end)
+
 -- ==========================================
 -- === 4. BUILD THE RAYFIELD UI ===
 -- ==========================================
@@ -206,7 +263,6 @@ RollTab:CreateInput({
     RemoveTextAfterFocusLost = false,
     Flag = "RollDelayInput", 
     Callback = function(Text)
-        -- tonumber() turns the text into a real number. If they type letters, it defaults to 0.3
         local num = tonumber(Text)
         if num then
             state.RollDelay = num
@@ -239,7 +295,6 @@ RollTab:CreateToggle({
                     local oldText = raceLabel.Text
                     RollRemote:InvokeServer()
                     
-                    -- Uses your custom timeout delay instead of hardcoded 0.3
                     local timeout = os.clock() + (tonumber(state.RollDelay) or 0.3)
                     while raceLabel.Text == oldText and os.clock() < timeout do task.wait() end
                     
@@ -322,6 +377,102 @@ createUpgradeToggle("Psychic Power", "UpPsychic", "PsychicPowerMultiplier", "PP"
 
 
 -- ==========================================
+-- === AUTO CLAIM TAB ===
+-- ==========================================
+local ClaimTab = Window:CreateTab("Auto Claim", 4483345998)
+
+ClaimTab:CreateSection("Daily Quests")
+
+local dailyStats = {"FistStrength", "BodyToughness", "MovementSpeed", "JumpForce", "PsychicPower"}
+
+ClaimTab:CreateToggle({
+    Name = "Auto Collect Daily Missions",
+    CurrentValue = false,
+    Flag = "ToggleAutoClaimDaily",
+    Callback = function(Value)
+        state.AutoClaimDaily = Value
+        if state.AutoClaimDaily then
+            task.spawn(function()
+                while state.AutoClaimDaily do
+                    for tier = 1, 9 do
+                        for _, statName in ipairs(dailyStats) do
+                            
+                            local isValid = true
+                            if (tier == 5 or tier == 8 or tier == 9) and (statName == "MovementSpeed" or statName == "JumpForce") then
+                                isValid = false
+                            end
+                            
+                            if isValid then
+                                QuestClaimRemote:FireServer(tier, statName, "Daily")
+                                task.wait(0.05) 
+                            end
+                            
+                        end
+                    end
+                    task.wait(30) 
+                end
+            end)
+        end
+    end,
+})
+
+-- ==========================================
+-- === CRATE TRACKER TAB ===
+-- ==========================================
+local CrateTab = Window:CreateTab("Crates", 4483345998)
+
+CrateTab:CreateSection("Workspace Crate Radar")
+
+CrateTab:CreateToggle({
+    Name = "Detect Common Crates",
+    CurrentValue = false,
+    Flag = "ToggleFindCommon",
+    Callback = function(Value) state.FindCommon = Value end,
+})
+
+CrateTab:CreateToggle({
+    Name = "Detect Rare Crates",
+    CurrentValue = false,
+    Flag = "ToggleFindRare",
+    Callback = function(Value) state.FindRare = Value end,
+})
+
+CrateTab:CreateToggle({
+    Name = "Detect Epic Crates",
+    CurrentValue = false,
+    Flag = "ToggleFindEpic",
+    Callback = function(Value) state.FindEpic = Value end,
+})
+
+CrateTab:CreateToggle({
+    Name = "Detect Legendary Crates",
+    CurrentValue = false,
+    Flag = "ToggleFindLegendary",
+    Callback = function(Value) state.FindLegendary = Value end,
+})
+
+CrateTab:CreateToggle({
+    Name = "Detect Mythic Crates",
+    CurrentValue = false,
+    Flag = "ToggleFindMythic",
+    Callback = function(Value) state.FindMythic = Value end,
+})
+
+CrateTab:CreateToggle({
+    Name = "Detect Godly Crates",
+    CurrentValue = false,
+    Flag = "ToggleFindGodly",
+    Callback = function(Value) state.FindGodly = Value end,
+})
+
+CrateTab:CreateToggle({
+    Name = "Detect Secret Crates",
+    CurrentValue = false,
+    Flag = "ToggleFindSecret",
+    Callback = function(Value) state.FindSecret = Value end,
+})
+
+-- ==========================================
 -- === COMBAT & MISC TAB ===
 -- ==========================================
 local CombatTab = Window:CreateTab("Combat & Misc", 4483345998)
@@ -357,47 +508,6 @@ CombatTab:CreateToggle({
     Flag = "ToggleAntiAFK",
     Callback = function(Value)
         state.AntiAFK = Value
-    end,
-})
-
--- ==========================================
--- === AUTO CLAIM TAB ===
--- ==========================================
-local ClaimTab = Window:CreateTab("Auto Claim", 4483345998)
-
-ClaimTab:CreateSection("Daily Quests")
-
-local dailyStats = {"FistStrength", "BodyToughness", "MovementSpeed", "JumpForce", "PsychicPower"}
-
-ClaimTab:CreateToggle({
-    Name = "Auto Collect Daily Missions",
-    CurrentValue = false,
-    Flag = "ToggleAutoClaimDaily",
-    Callback = function(Value)
-        state.AutoClaimDaily = Value
-        if state.AutoClaimDaily then
-            task.spawn(function()
-                while state.AutoClaimDaily do
-                    for tier = 1, 9 do
-                        for _, statName in ipairs(dailyStats) do
-                            
-                            -- Skips sending the request for Movement and Jump on tiers 5, 8, and 9 to prevent bans
-                            local isValid = true
-                            if (tier == 5 or tier == 8 or tier == 9) and (statName == "MovementSpeed" or statName == "JumpForce") then
-                                isValid = false
-                            end
-                            
-                            if isValid then
-                                QuestClaimRemote:FireServer(tier, statName, "Daily")
-                                task.wait(0.05) 
-                            end
-                            
-                        end
-                    end
-                    task.wait(30) 
-                end
-            end)
-        end
     end,
 })
 
