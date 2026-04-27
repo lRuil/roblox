@@ -309,7 +309,7 @@ RollTab:CreateToggle({
                     local oldText = raceLabel.Text
                     RollRemote:InvokeServer()
                     
-                    local timeout = os.clock() + 0.3
+                    local timeout = os.clock() + 0.05
                     while raceLabel.Text == oldText and os.clock() < timeout do task.wait() end
                     
                     local currentText = raceLabel.Text
