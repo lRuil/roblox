@@ -191,25 +191,26 @@ task.spawn(function()
                     local embedColor = 16777215 
                     
                     if state.FindCommon and obj.Name == "CommonCrate" then
-                        isTargetCrate = true; crateType = "Common"; embedColor = 14540253 -- Off-White
+                        isTargetCrate = true; crateType = "Common"; embedColor = 14540253 
                     elseif state.FindRare and obj.Name == "RareCrate" then
-                        isTargetCrate = true; crateType = "Rare"; embedColor = 5294335 -- Light Blue
+                        isTargetCrate = true; crateType = "Rare"; embedColor = 5294335 
                     elseif state.FindEpic and obj.Name == "EpicCrate" then
-                        isTargetCrate = true; crateType = "Epic"; embedColor = 16724991 -- Magenta
+                        isTargetCrate = true; crateType = "Epic"; embedColor = 16724991 
                     elseif state.FindLegendary and obj.Name == "LegendaryCrate" then
-                        isTargetCrate = true; crateType = "Legendary"; embedColor = 16776960 -- Yellow
+                        isTargetCrate = true; crateType = "Legendary"; embedColor = 16776960 
                     elseif state.FindMythic and obj.Name == "MythicCrate" then
-                        isTargetCrate = true; crateType = "Mythic"; embedColor = 16711680 -- Red
+                        isTargetCrate = true; crateType = "Mythic"; embedColor = 16711680 
                     elseif state.FindGodly and obj.Name == "GodlyCrate" then
-                        isTargetCrate = true; crateType = "Godly"; embedColor = 65280 -- Green
+                        isTargetCrate = true; crateType = "Godly"; embedColor = 65280 
                     elseif state.FindSecret and obj.Name == "SecretCrate" then
-                        isTargetCrate = true; crateType = "Secret"; embedColor = 3289650 -- Dark Grey
+                        isTargetCrate = true; crateType = "Secret"; embedColor = 3289650 
                     end
                     
                     if isTargetCrate and not trackedCrates[obj] then
                         trackedCrates[obj] = os.clock()
                         
-                        local desc = string.format("A **%s Crate** has spawned in the workspace! Quick, go find it before it despawns.", crateType)
+                        -- 🔥 JobId implemented right here in the description
+                        local desc = string.format("A **%s Crate** has spawned in the workspace! Quick, go find it before it despawns.\n\n**Server Job ID:**\n`%s`", crateType, game.JobId)
                         sendDiscordPing(state.WebhookURL, state.UserID, "📦 " .. crateType .. " Crate Detected!", desc, embedColor)
                     end
                 end
