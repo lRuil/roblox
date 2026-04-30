@@ -230,7 +230,7 @@ end)
 -- === 4. BUILD THE RAYFIELD UI ===
 -- ==========================================
 local Window = Rayfield:CreateWindow({
-    Name = "Ultimate AIO Hub",
+    Name = "AIO Hub",
     ScriptID = "sid_8gp7anphad8e",
     LoadingTitle = "AIO Hub Booting...",
     LoadingSubtitle = "by Rui",
