@@ -36,7 +36,9 @@ local state = {
     FindLegendary = false,
     FindMythic = false,
     FindGodly = false,
-    FindSecret = false
+    FindSecret = false,
+    AutoCollectCrates = false,
+    MaxTpDistance = 150 -- Default studs per teleport jump
 }
 
 -- ==========================================
@@ -152,6 +154,33 @@ local function sendDiscordPing(webhookUrl, userId, title, description, color)
     end)
 end
 
+-- 🔥 NEW: Legit Teleport Logic
+local function smartTeleport(targetPos)
+    local char = player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local startPos = char.HumanoidRootPart.Position
+    
+    local totalDistance = (targetPos - startPos).Magnitude
+    local maxStep = state.MaxTpDistance
+    local steps = math.ceil(totalDistance / maxStep)
+    
+    if steps == 0 then steps = 1 end
+    
+    for i = 1, steps do
+        if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then break end
+        
+        -- Calculates the exact position of the next "jump"
+        local alpha = i / steps
+        local nextPos = startPos:Lerp(targetPos, alpha)
+        
+        -- Fires the exact same remote as a real user click
+        UseSkillRemote:FireServer("Teleport", vector.create(nextPos.X, nextPos.Y, nextPos.Z))
+        
+        -- Tiny delay to let the server register the jump naturally
+        task.wait(0.15)
+    end
+end
+
 -- === ANTI-AFK ===
 player.Idled:Connect(function()
     if state.AntiAFK then
@@ -177,52 +206,69 @@ task.spawn(function()
     end
 end)
 
--- === CRATE TRACKER BACKGROUND LOOP ===
+-- === CRATE TRACKER & TELEPORT LOOP ===
 local trackedCrates = {} 
 task.spawn(function()
+    local isCollecting = false
     while true do
-        task.wait(3) 
-        if state.WebhookEnabled and state.WebhookURL ~= "" then
-            
-            if state.FindCommon or state.FindRare or state.FindEpic or state.FindLegendary or state.FindMythic or state.FindGodly or state.FindSecret then
-                for _, obj in ipairs(workspace:GetChildren()) do
-                    local isTargetCrate = false
-                    local crateType = ""
-                    local embedColor = 16777215 
+        task.wait(1.5) -- Faster scan time so we don't miss crates
+        
+        local scanningCrates = state.FindCommon or state.FindRare or state.FindEpic or state.FindLegendary or state.FindMythic or state.FindGodly or state.FindSecret
+        
+        if scanningCrates then
+            for _, obj in ipairs(workspace:GetChildren()) do
+                local isTargetCrate = false
+                local crateType = ""
+                local embedColor = 16777215 
+                
+                if state.FindCommon and obj.Name == "CommonCrate" then
+                    isTargetCrate = true; crateType = "Common"; embedColor = 14540253 
+                elseif state.FindRare and obj.Name == "RareCrate" then
+                    isTargetCrate = true; crateType = "Rare"; embedColor = 5294335 
+                elseif state.FindEpic and obj.Name == "EpicCrate" then
+                    isTargetCrate = true; crateType = "Epic"; embedColor = 16724991 
+                elseif state.FindLegendary and obj.Name == "LegendaryCrate" then
+                    isTargetCrate = true; crateType = "Legendary"; embedColor = 16776960 
+                elseif state.FindMythic and obj.Name == "MythicCrate" then
+                    isTargetCrate = true; crateType = "Mythic"; embedColor = 16711680 
+                elseif state.FindGodly and obj.Name == "GodlyCrate" then
+                    isTargetCrate = true; crateType = "Godly"; embedColor = 65280 
+                elseif state.FindSecret and obj.Name == "SecretCrate" then
+                    isTargetCrate = true; crateType = "Secret"; embedColor = 3289650 
+                end
+                
+                if isTargetCrate and not trackedCrates[obj] then
+                    trackedCrates[obj] = os.clock()
                     
-                    if state.FindCommon and obj.Name == "CommonCrate" then
-                        isTargetCrate = true; crateType = "Common"; embedColor = 14540253 
-                    elseif state.FindRare and obj.Name == "RareCrate" then
-                        isTargetCrate = true; crateType = "Rare"; embedColor = 5294335 
-                    elseif state.FindEpic and obj.Name == "EpicCrate" then
-                        isTargetCrate = true; crateType = "Epic"; embedColor = 16724991 
-                    elseif state.FindLegendary and obj.Name == "LegendaryCrate" then
-                        isTargetCrate = true; crateType = "Legendary"; embedColor = 16776960 
-                    elseif state.FindMythic and obj.Name == "MythicCrate" then
-                        isTargetCrate = true; crateType = "Mythic"; embedColor = 16711680 
-                    elseif state.FindGodly and obj.Name == "GodlyCrate" then
-                        isTargetCrate = true; crateType = "Godly"; embedColor = 65280 
-                    elseif state.FindSecret and obj.Name == "SecretCrate" then
-                        isTargetCrate = true; crateType = "Secret"; embedColor = 3289650 
-                    end
-                    
-                    if isTargetCrate and not trackedCrates[obj] then
-                        trackedCrates[obj] = os.clock()
-                        
-                        -- 🔥 JobId implemented right here in the description
+                    -- Webhook Notification
+                    if state.WebhookEnabled and state.WebhookURL ~= "" then
                         local desc = string.format("A **%s Crate** has spawned in the workspace! Quick, go find it before it despawns.\n\n**Server Job ID:**\n`%s`", crateType, game.JobId)
                         sendDiscordPing(state.WebhookURL, state.UserID, "📦 " .. crateType .. " Crate Detected!", desc, embedColor)
                     end
+                    
+                    -- Auto Teleport Logic
+                    if state.AutoCollectCrates and not isCollecting then
+                        isCollecting = true
+                        task.spawn(function()
+                            -- GetPivot ensures we get the location whether it's a Part or a Model
+                            local targetPos = obj:GetPivot().Position
+                            smartTeleport(targetPos)
+                            
+                            -- Wait a second after arriving to simulate touching it before we hunt another
+                            task.wait(1)
+                            isCollecting = false
+                        end)
+                    end
                 end
             end
-            
-            for crateObj, timeFound in pairs(trackedCrates) do
-                if os.clock() - timeFound > 240 or not crateObj.Parent then
-                    trackedCrates[crateObj] = nil
-                end
-            end
-            
         end
+        
+        for crateObj, timeFound in pairs(trackedCrates) do
+            if os.clock() - timeFound > 240 or not crateObj.Parent then
+                trackedCrates[crateObj] = nil
+            end
+        end
+        
     end
 end)
 
@@ -230,10 +276,9 @@ end)
 -- === 4. BUILD THE RAYFIELD UI ===
 -- ==========================================
 local Window = Rayfield:CreateWindow({
-    Name = "AIO Hub",
-    ScriptID = "sid_8gp7anphad8e",
+    Name = "Ultimate AIO Hub",
     LoadingTitle = "AIO Hub Booting...",
-    LoadingSubtitle = "by Rui",
+    LoadingSubtitle = "by You",
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "UltimateAIO", 
@@ -423,7 +468,28 @@ ClaimTab:CreateToggle({
 -- ==========================================
 local CrateTab = Window:CreateTab("Crates", 4483345998)
 
-CrateTab:CreateSection("Workspace Crate Radar")
+CrateTab:CreateSection("Auto Collect")
+
+CrateTab:CreateToggle({
+    Name = "Auto Teleport to Found Crates",
+    CurrentValue = false,
+    Flag = "ToggleAutoCollectCrates",
+    Callback = function(Value) state.AutoCollectCrates = Value end,
+})
+
+CrateTab:CreateSlider({
+    Name = "Max Teleport Distance (per click)",
+    Range = {10, 500},
+    Increment = 10,
+    Suffix = "Studs",
+    CurrentValue = 150,
+    Flag = "SliderTpDistance", 
+    Callback = function(Value)
+        state.MaxTpDistance = Value
+    end,
+})
+
+CrateTab:CreateSection("Workspace Crate Filters")
 
 CrateTab:CreateToggle({
     Name = "Detect Common Crates",
@@ -594,6 +660,7 @@ SettingsTab:CreateButton({
         state.UpJump = false
         state.UpPsychic = false
         state.AutoClaimDaily = false
+        state.AutoCollectCrates = false
         Rayfield:Destroy()
     end,
 })
